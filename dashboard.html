@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wind Power Prediction Dashboard</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #00b4db, #0083b0);
+            color: white;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            width: 40%;
+            margin: 60px auto;
+            background: rgba(255,255,255,0.1);
+            padding: 20px;
+            border-radius: 10px;
+        }
+        input {
+            width: 95%;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border: none;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: yellow;
+            border: none;
+            cursor: pointer;
+            color: black;
+            font-size: 16px;
+            border-radius: 5px;
+        }
+        button:hover { background-color: orange; }
+        #result {
+            margin-top: 20px;
+            background: rgba(0,0,0,0.3);
+            padding: 15px;
+            border-radius: 5px;
+            font-size: 18px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>⚡ Wind Power Prediction</h2>
+
+    <input type="number" id="ws" placeholder="Wind Speed (m/s)">
+    <input type="number" id="wd" placeholder="Wind Direction (deg)">
+    <input type="number" id="temp" placeholder="Temperature (°C)">
+    <input type="number" id="press" placeholder="Pressure (hPa)">
+    <input type="number" id="density" placeholder="Air Density (kg/m3)">
+    <input type="number" id="rpm" placeholder="Rotor RPM">
+
+    <button onclick="predict()">Predict Power</button>
+
+    <div id="result">Result will appear here</div>
+</div>
+
+    function predict() {
+        const data = {
+            WindSpeed: parseFloat(document.getElementById("ws").value),
+            WindDirection: parseFloat(document.getElementById("wd").value),
+            Temperature: parseFloat(document.getElementById("temp").value),
+            Pressure: parseFloat(document.getElementById("press").value),
+            AirDensity: parseFloat(document.getElementById("density").value),
+            RotorRPM: parseFloat(document.getElementById("rpm").value),
+        };
+
+        // Check if any input is empty
+        if (Object.values(data).some(isNaN)) {
+            document.getElementById("result").innerHTML = "❌ Please enter all values!";
+            return;
+        }
+
+        fetch("http://127.0.0.1:5000/predict", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify(data)
+        })
+        .then(response => response.json())
+        .then(result => {
+            if (result.prediction !== undefined) {
+                document.getElementById("result").innerHTML =
+                `⚡ Predicted Wind Power: <b>${result.prediction.toFixed(2)} kW</b>`;
+            } else {
+                document.getElementById("result").innerHTML = "❌ Error: " + result.error;
+            }
+        })
+        .catch(err => {
+            document.getElementById("result").innerHTML = "❌ Connection Error!";
+        });
+    }
+</script>
+
+</body>
+</html>
